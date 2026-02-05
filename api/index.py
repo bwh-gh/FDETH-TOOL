@@ -25,26 +25,23 @@ PRODUCT_INVENTORY = {
 @app.get("/discovery")
 async def discovery():
     return {
-        "success": True,
-        "api_specification": {
-            "name": "Inventory Truth Engine",
-            "description": "Real-time product SKU lookups for pricing and stock.",
-            "endpoints": [
-                {
-                    "path": "/tools/get-product-data",
-                    "method": "GET", 
-                    "description": "Fetch product details by SKU",
-                    "parameters": [
-                        {
-                            "name": "product_id",
-                            "in": "query",
-                            "required": True,
-                            "schema": {"type": "string"}
-                        }
-                    ]
-                }
-            ]
-        }
+        "functions": [
+            {
+                "name": "get_product_data",
+                "description": "Fetch real-time stock and pricing for Elysian watches by SKU.",
+                "parameters": [
+                    {
+                        "name": "product_id",
+                        "type": "string",
+                        "description": "The watch SKU (e.g., SILVER-LEATHER-02)",
+                        "required": true
+                    }
+                ],
+                # This 'endpoint' key is critical—it tells Opal WHERE to send the data
+                "endpoint": "/tools/get-product-data",
+                "http_method": "GET"
+            }
+        ]
     }
 
 # --- THE UNIVERSAL TOOL ENDPOINT ---
@@ -96,3 +93,4 @@ async def get_product_data(request: Request):
 # if __name__ == "__main__":
 #     import uvicorn
 #     uvicorn.run(app, host="0.0.0.0", port=8000)
+
