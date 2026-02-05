@@ -1,9 +1,11 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI(redirect_slashes=False)
 
-# Enable CORS so Opal can talk to your API from their domain
+# Enable CORS for Opal's cloud infrastructure
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -11,12 +13,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Root path to prevent 404s on the base URL
+# Pydantic model for POST requests
+class ProductQuery(BaseModel):
+    product_id: str
+
 @app.get("/")
 async def root():
-    return {"status": "Elysian Truth Engine Online", "version": "1.0.1"}
+    return {"status": "Elysian Truth Engine Online", "version": "1.0.2"}
 
-# THE DISCOVERY ENDPOINT (What Opal reads first)
+# 1. DISCOVERY ENDPOINT
 @app.get("/discovery")
 async def discovery():
     return {
@@ -33,15 +38,29 @@ async def discovery():
                     }
                 ],
                 "endpoint": "/tools/get-product-data",
-                "http_method": "GET"
+                "http_method": "POST"  # Changed to POST as it's more standard for Opal tools
             }
         ]
     }
 
-# THE EXECUTION ENDPOINT (Where the logic happens)
-@app.get("/tools/get-product-data")
-async def get_product_data(product_id: str = Query(..., description="The SKU of the product")):
-    # Mock Database - This is your 'Source of Truth'
+# 2. EXECUTION ENDPOINT (Handles both GET and POST)
+@app.api_route("/tools/get-product-data", methods=["GET", "POST"])
+async def get_product_data(request: Request, product_id: Optional[str] = None):
+    # Determine the product_id from either Query Params (GET) or JSON Body (POST)
+    target_id = product_id
+    
+    if request.method == "POST":
+        try:
+            body = await request.json()
+            # Opal often sends parameters inside a 'parameters' key
+            target_id = body.get("product_id") or body.get("parameters", {}).get("product_id")
+        except:
+            pass
+
+    if not target_id:
+        return {"success": False, "error": "No product_id provided."}
+
+    # Inventory 'Source of Truth'
     inventory = {
         "SILVER-LEATHER-02": {
             "name": "Argento Slimline",
@@ -59,15 +78,8 @@ async def get_product_data(product_id: str = Query(..., description="The SKU of 
         }
     }
     
-    # Return the specific SKU data or an error if not found
-    product = inventory.get(product_id.upper())
-    
+    product = inventory.get(target_id.upper())
     if product:
         return {"success": True, "product": product}
-    else:
-        return {"success": False, "error": f"SKU {product_id} not found in Elysian inventory."}
-
-# Required for some local testing environments, Vercel ignores this part
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+    return {"success": False, "error": f"SKU {target_id} not found."}
