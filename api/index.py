@@ -1,27 +1,22 @@
-from fastapi import FastAPI, Request
-from typing import Dict
+from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+app = FastAPI(redirect_slashes=False)
 
-# --- MOCK ENTERPRISE DATA ---
-PRODUCT_INVENTORY = {
-    "GOLD-WATCH-01": {
-        "name": "Elysian Gold Chronograph",
-        "price": "£1,250",
-        "stock": 3,
-        "region_restriction": "None",
-        "mandatory_footer": "Finance available at 0% APR. Terms apply."
-    },
-    "SILVER-LEATHER-02": {
-        "name": "Argento Slimline",
-        "price": "£450",
-        "stock": 0,
-        "region_restriction": "EU Only",
-        "mandatory_footer": "Includes 2-year international warranty."
-    }
-}
+# Enable CORS so Opal can talk to your API from their domain
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# --- THE DISCOVERY ENDPOINT ---
+# Root path to prevent 404s on the base URL
+@app.get("/")
+async def root():
+    return {"status": "Elysian Truth Engine Online", "version": "1.0.1"}
+
+# THE DISCOVERY ENDPOINT (What Opal reads first)
 @app.get("/discovery")
 async def discovery():
     return {
@@ -34,63 +29,45 @@ async def discovery():
                         "name": "product_id",
                         "type": "string",
                         "description": "The watch SKU (e.g., SILVER-LEATHER-02)",
-                        "required": true
+                        "required": True
                     }
                 ],
-                # This 'endpoint' key is critical—it tells Opal WHERE to send the data
                 "endpoint": "/tools/get-product-data",
                 "http_method": "GET"
             }
         ]
     }
 
-# --- THE UNIVERSAL TOOL ENDPOINT ---
-@app.api_route("/tools/get-product-data", methods=["GET", "POST"])
-async def get_product_data(request: Request):
-    sku = None
-    
-    # 1. SPY LOG: See exactly what Opal is sending
-    # Check query params first (for GET)
-    sku = request.query_params.get("product_id") or request.query_params.get("sku")
-
-   # 2. Check JSON body (for POST)
-    if not sku:
-        try:
-            body = await request.json()
-            print(f"DEBUG: Received Body: {body}")
-            
-            # THE FIX: Drill into the 'parameters' key that Opal is using
-            if "parameters" in body:
-                sku = body["parameters"].get("product_id")
-            
-            # Fallback for other formats just in case
-            if not sku:
-                sku = body.get("product_id") or body.get("sku")
-        except:
-            pass
-
-    # --- FINAL DEBUG LOG ---
-    print(f"DEBUG: Method: {request.method} | Resolved SKU: {sku}")
-
-    if not sku:
-        return {
-            "error": "No product_id detected in request.",
-            "debug_info": "Opal is hitting the endpoint but the field mapping is off."
+# THE EXECUTION ENDPOINT (Where the logic happens)
+@app.get("/tools/get-product-data")
+async def get_product_data(product_id: str = Query(..., description="The SKU of the product")):
+    # Mock Database - This is your 'Source of Truth'
+    inventory = {
+        "SILVER-LEATHER-02": {
+            "name": "Argento Slimline",
+            "price": "£450",
+            "stock": 0,
+            "status": "Out of Stock",
+            "message": "Waitlist Only. Do not promise immediate delivery."
+        },
+        "GOLD-WATCH-01": {
+            "name": "Elysian Gold Chronograph",
+            "price": "£1,250",
+            "stock": 3,
+            "status": "In Stock",
+            "message": "Available for overnight shipping."
         }
-        
-    sku_upper = sku.upper().strip()
-    result = PRODUCT_INVENTORY.get(sku_upper)
+    }
     
-    if not result:
-        return {
-            "error": f"SKU '{sku_upper}' not found.",
-            "available": list(PRODUCT_INVENTORY.keys())
-        }
+    # Return the specific SKU data or an error if not found
+    product = inventory.get(product_id.upper())
     
-    return result
+    if product:
+        return {"success": True, "product": product}
+    else:
+        return {"success": False, "error": f"SKU {product_id} not found in Elysian inventory."}
 
-# DELETED FOR VERCEL
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
-
+# Required for some local testing environments, Vercel ignores this part
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
