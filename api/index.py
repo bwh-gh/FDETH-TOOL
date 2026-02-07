@@ -1,11 +1,13 @@
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI()
 
-# Opal prefers a clean, flat parameter structure
+# We make the field optional in the Pydantic model so it doesn't 
+# crash before it reaches our custom logic
 class ProductRequest(BaseModel):
-    product_id: str
+    product_id: Optional[str] = None
 
 @app.get("/discovery")
 async def discovery():
@@ -29,7 +31,17 @@ async def discovery():
     }
 
 @app.post("/tools/get-product-data")
-async def get_product_data(req: ProductRequest):
+async def get_product_data(request: Request):
+    # Manually parse the JSON to handle Opal's nesting
+    body = await request.json()
+    
+    # Try to find product_id in the 'parameters' nest first (Opal style), 
+    # then fall back to the top level (standard style)
+    target_id = body.get("parameters", {}).get("product_id") or body.get("product_id")
+
+    if not target_id:
+        return {"error": "Missing product_id in request body"}
+
     inventory = {
         "SILVER-LEATHER-02": {
             "name": "Argento Slimline",
@@ -45,11 +57,9 @@ async def get_product_data(req: ProductRequest):
         }
     }
     
-    sku = req.product_id.upper()
-    data = inventory.get(sku)
+    data = inventory.get(target_id.upper())
     
     if data:
-        # Return a flat object—easier for AI to parse
         return {
             "name": data["name"],
             "price": data["price"],
@@ -58,4 +68,4 @@ async def get_product_data(req: ProductRequest):
             "can_sell_now": data["stock"] > 0
         }
     
-    return {"error": "SKU not found in Truth Engine"}
+    return {"error": f"SKU {target_id} not found in Truth Engine"}
