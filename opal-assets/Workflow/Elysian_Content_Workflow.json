@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0",
+  "agent_type": "workflow",
+  "name": "Elysian Content Workflow",
+  "description": "An end-to-end campaign orchestration workflow that integrates real-time inventory data with brand-safe content generation. It manages the handoff between creative drafting and legal auditing to ensure 100% pricing and stock accuracy.",
+  "version": "",
+  "agent_id": "elysian_content_workflow",
+  "objective": "",
+  "plan": "",
+  "is_active": true,
+  "is_deleted": false,
+  "agent_metadata": {
+    "edges": [
+      {
+        "id": "xy-edge__2402170b-f52a-485b-bf62-405f52e6856esource-right-circle-ab02bfd6-6790-442e-beae-a9c3ca2cea27target-left-circle",
+        "source": "2402170b-f52a-485b-bf62-405f52e6856e",
+        "target": "ab02bfd6-6790-442e-beae-a9c3ca2cea27",
+        "sourceHandle": "source-right-circle",
+        "targetHandle": "target-left-circle"
+      },
+      {
+        "id": "c2621657-0465-4cbd-99a6-54d184a1bf7b",
+        "source": "2da7895a-8c67-458b-8550-95f8275c79df",
+        "target": "2402170b-f52a-485b-bf62-405f52e6856e"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "2da7895a-8c67-458b-8550-95f8275c79df",
+        "measured": {
+          "width": 248,
+          "height": 108
+        },
+        "position": {
+          "x": 525,
+          "y": 495
+        }
+      },
+      {
+        "id": "ab02bfd6-6790-442e-beae-a9c3ca2cea27",
+        "measured": {
+          "width": 248,
+          "height": 108
+        },
+        "position": {
+          "x": 1260,
+          "y": 495
+        }
+      },
+      {
+        "id": "2402170b-f52a-485b-bf62-405f52e6856e",
+        "measured": {
+          "width": 248,
+          "height": 108
+        },
+        "position": {
+          "x": 885,
+          "y": 495
+        }
+      }
+    ]
+  },
+  "internal_version": 38,
+  "steps": [
+    {
+      "step_id": "ab02bfd6-6790-442e-beae-a9c3ca2cea27",
+      "step_type": "specialized",
+      "name": "Compliance Sentinel",
+      "description": "Audits marketing drafts against real-time product inventory and regional legal requirements. Enforces brand safety and pricing accuracy.",
+      "agent_id": "compliance_sentinel",
+      "parameters_schema": {},
+      "next_step_id": null,
+      "timeout_seconds": 3600
+    },
+    {
+      "step_id": "2402170b-f52a-485b-bf62-405f52e6856e",
+      "step_type": "specialized",
+      "name": "Campaign Architect",
+      "description": "Transforms raw product data and inventory signals into high-converting, brand-aligned marketing copy.",
+      "agent_id": "campaign_architect",
+      "parameters_schema": {},
+      "next_step_id": "ab02bfd6-6790-442e-beae-a9c3ca2cea27",
+      "timeout_seconds": 3600
+    }
+  ],
+  "specialized_agents_required": [
+    "compliance_sentinel",
+    "campaign_architect"
+  ],
+  "triggers": [
+    {
+      "trigger_id": "2da7895a-8c67-458b-8550-95f8275c79df",
+      "trigger_type": "message",
+      "name": "Chat Input",
+      "description": "Trigger when user sends a message",
+      "is_active": true
+    }
+  ]
+}
