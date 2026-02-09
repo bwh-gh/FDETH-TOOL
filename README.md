@@ -27,7 +27,7 @@ This repository contains the functional components and configurations for the El
 
 3. Documentation
 
-./BenHughes_OpalAgentSolution.pdf: The comprehensive 2-page brief covering problem identification, design decisions, and self-reflection.
+BenHughes_OpalAgentSolution.pdf: The comprehensive 2-page brief covering problem identification, design decisions, and self-reflection.
 
 🔧 Opal Registry Configuration
 To register the custom tool in the Opal instance:
@@ -35,3 +35,4 @@ To register the custom tool in the Opal instance:
 URL: https://fdeth-tool.vercel.app/discovery
 
 Name: Elysian Truth Engine
+
