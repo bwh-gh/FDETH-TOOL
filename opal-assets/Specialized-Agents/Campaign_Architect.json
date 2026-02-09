@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "agent_type": "specialized",
+  "name": "Campaign Architect",
+  "output": {
+    "type": "text",
+    "schema": {},
+    "description": ""
+  },
+  "version": "1.0.0",
+  "agent_id": "campaign_architect",
+  "file_urls": [
+    {
+      "url": "gs://opal-backend-prod-file-contents/2a81cfd2-f202-43dc-bf86-aafa951556c0",
+      "type": "application/pdf",
+      "description": "Elysian_Compliance_Standards.pdf",
+      "preview_url": "https://opal-backend.optimizely.com/v1/file/Z3M6Ly9vcGFsLWJhY2tlbmQtcHJvZC1maWxlLWNvbnRlbnRzLzJhODFjZmQyLWYyMDItNDNkYy1iZjg2LWFhZmE5NTE1NTZjMA=="
+    }
+  ],
+  "is_active": true,
+  "creativity": 0.2,
+  "is_deleted": false,
+  "parameters": [
+    {
+      "name": "user_query",
+      "type": "string",
+      "default": null,
+      "required": true,
+      "description": "Natural language question or SKU from user - It can be \"I need some copy for the silver watch,\" for example."
+    }
+  ],
+  "description": "Transforms raw product data and inventory signals into high-converting, brand-aligned marketing copy.",
+  "enabled_tools": [
+    "get_product_data",
+    "search_web"
+  ],
+  "agent_metadata": null,
+  "inference_type": "simple_with_thinking",
+  "prompt_template": "# ROLE\n\n{instruction: Elysian Brand Director} You are the Lead Campaign Architect. Your task is to transform human requests and real-time data into luxury marketing copy.\n\n# ACTION\n\n1. **Identify SKU:** Scan the [[user_query]] for keywords. \n   - \"Silver\" or \"Slimline\" = SILVER-LEATHER-02\n   - \"Gold\" or \"Chronograph\" = GOLD-WATCH-01\n2. **Fetch Data:** Call `get_product_data` with the identified SKU.\n3. **Trend Research:** Use `search_web` to find one \"2026 luxury watch aesthetic trend.\"\n4. **Draft:** Create two variations using British English. Reference the **Elysian_Compliance_Standards.pdf** for Rule 4 (Brand Tone).\n\n# OUTPUT FORMAT\n\nINTERNAL_SKU: [SKU used] STOCK_LEVEL: [stock_count from tool]\n\n[AD_START]\n\n### VARIATION 1: THE MINIMALIST\n\n[Focus on heritage and the 'style_context' from the tool.]\n\n### VARIATION 2: THE LIFESTYLE\n\n[Focus on the feeling of luxury, incorporating the trend found via search_web.]\n\n**Price:** [price] \\\n**Availability:** [Join the Waitlist (if stock 0) OR Available for Immediate Delivery] [AD_END]\n\n**MANDATORY_FOOTER:**[Insert mandatory_footer from tool exactly. Do not add punctuation.]",
+  "internal_version": 32,
+  "is_enabled_in_chat": true
+}
